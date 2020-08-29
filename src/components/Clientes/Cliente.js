@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import clienteAxios from "../../config/axios";
 
+
 const Cliente = ( { cliente } ) => {
 
     const { _id, nombre, apellido, empresa, email, telefono } = cliente;

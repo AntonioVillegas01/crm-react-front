@@ -1,12 +1,16 @@
-import React,{useState,useEffect} from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {withRouter} from 'react-router-dom'
 import Swal from "sweetalert2";
 import clienteAxios from "../../config/axios";
 import Spinner from "../layout/Spinner";
+import { CRMContext } from "../../context/CRMContext";
 
 const EditarProducto = (props) => {
     //obtener el id del producto
     const {id} = props.match.params;
+
+
+    const[auth, guardarAuth] = useContext(CRMContext);
 
     //Producto = state, y funcion para actualizar
     const[producto, guardarProducto] = useState({
@@ -20,12 +24,33 @@ const EditarProducto = (props) => {
 
     //cuando el componente carga
     useEffect(()=>{
-        //consultar la api para traer producto
-        const consultarAPI = async () => {
-            const productoConsulta = await clienteAxios.get(`/productos/${id}`);
-            guardarProducto(productoConsulta.data);
+
+        if(auth.token !== ''){
+            try{
+                //consultar la api para traer producto
+                const consultarAPI = async () => {
+                    const productoConsulta = await clienteAxios.get(`/productos/${id}`, {
+                        headers:{
+                            Authorization: `Bearer ${auth.token}`
+                        }
+                    });
+                    guardarProducto(productoConsulta.data);
+                }
+                consultarAPI()
+
+            }catch( e ) {
+                if(e.response.status === 500){
+                    props.history.push('/iniciar-sesion')
+                }
+            }
+
+
+
+        }else{
+            props.history.push('/iniciar-sesion')
         }
-        consultarAPI()
+
+
 
     },[])
 
@@ -80,6 +105,10 @@ const EditarProducto = (props) => {
 
     //Extraer los valores del state
     const {nombre, precio, imagen} = producto;
+
+    if(!auth.auth){
+        props.history.push('iniciar-sesion')
+    }
 
     if(!nombre) return <Spinner/>;
 

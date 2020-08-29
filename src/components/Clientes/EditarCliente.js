@@ -55,6 +55,7 @@ const EditarCliente = ( props ) => {
     }
 
     //Actualiza cliente en servicdor
+
     const actualizarCliente = e => {
         e.preventDefault();
 

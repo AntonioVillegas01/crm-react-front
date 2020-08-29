@@ -1,23 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { withRouter } from 'react-router-dom';
 import clienteAxios from "../../config/axios";
 import DetallesPedido from "./DetallesPedido";
 import Swal from "sweetalert2";
+import { CRMContext } from "../../context/CRMContext";
 
 
-const Pedidos = () => {
+const Pedidos = ({history}) => {
 
     const [pedidos, guardarPedidos] = useState( [] );
+    const[auth, guardarAuth] = useContext(CRMContext);
 
 
     useEffect( () => {
 
-        const consultarAPI = async() => {
+        if(auth.token !== ''){
+            try{
+                const consultarAPI = async() => {
+                    //obtener los pedidos
+                    const resultado = await clienteAxios.get( `/pedidos`,{
+                        headers:{
+                            Authorization: `Bearer ${auth.token}`
+                        }
+                    } )
+                    guardarPedidos( resultado.data )
+                }
+                consultarAPI();
+            }catch( e ) {
+                if(e.response.status === 500){
+                    history.push('/iniciar-sesion');
+                }
+            }
 
-            //obtener los pedidos
-            const resultado = await clienteAxios.get( `/pedidos` )
-            guardarPedidos( resultado.data )
+        }else{
+            history.push('/iniciar-sesion');
         }
-        consultarAPI();
+
+
 
     }, [pedidos] )
 
@@ -37,7 +56,7 @@ const Pedidos = () => {
             if( result.value ) {
                 //Llamado a axios
                 clienteAxios.delete( `/pedidos/${id}` )
-                    .then( (res) => {
+                    .then( ( res ) => {
                         Swal.fire(
                             'Eliminado!',
                             res.data.mensaje,
@@ -54,7 +73,7 @@ const Pedidos = () => {
             {pedidos.length !== 0
                 ?
                 <ul className="listado-pedidos">
-                    {pedidos.map( (pedido,index) => (
+                    {pedidos.map( ( pedido, index ) => (
                         <DetallesPedido
                             key={index}
                             pedido={pedido}
@@ -70,4 +89,4 @@ const Pedidos = () => {
     );
 };
 
-export default Pedidos;
+export default withRouter(Pedidos) ;

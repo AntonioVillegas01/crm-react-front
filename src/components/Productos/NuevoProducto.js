@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import {withRouter} from 'react-router-dom'
+import React, { useContext, useState } from 'react';
+import { withRouter } from 'react-router-dom'
 import Swal from "sweetalert2";
 import clienteAxios from "../../config/axios";
+import { CRMContext } from "../../context/CRMContext";
 
-const NuevoProducto = (props) => {
+const NuevoProducto = ( props ) => {
+
+    const [auth, guardarAuth] = useContext( CRMContext );
 
     const [producto, guardarProducto] = useState( {
         nombre: '',
@@ -12,35 +15,35 @@ const NuevoProducto = (props) => {
     const [archivo, guardarArchivo] = useState( '' );
 
     const leerInformacionProducto = e => {
-        guardarProducto({
+        guardarProducto( {
             ...producto,
-            [e.target.name] : e.target.value
-        });
+            [e.target.name]: e.target.value
+        } );
     }
 
     const leerArchivo = e => {
-     //   console.log(e.target.files)
-        guardarArchivo(e.target.files[0]);
+        //   console.log(e.target.files)
+        guardarArchivo( e.target.files[0] );
     }
 
     //almacena y guarda imagen en serrvidor
-    const agregarProducto = async e =>{
+    const agregarProducto = async e => {
         e.preventDefault();
 
         //CRear Form Data
         const formData = new FormData();
-        formData.append('nombre', producto.nombre);
-        formData.append('precio',producto.precio);
-        formData.append('imagen', archivo)
-        
+        formData.append( 'nombre', producto.nombre );
+        formData.append( 'precio', producto.precio );
+        formData.append( 'imagen', archivo )
+
         //almacenarlo en la BD
-        try{
-         const res = await clienteAxios.post('/productos',formData, {
-              headers: {
-                  'Content-Type' : 'multipart/form-data'
-              }
-          })
-            if(res.status === 200){
+        try {
+            const res = await clienteAxios.post( '/productos', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            } )
+            if( res.status === 200 ) {
                 await Swal.fire( {
                     icon: 'success',
                     title: 'Agregado Correctamente',
@@ -49,16 +52,20 @@ const NuevoProducto = (props) => {
             }
 
             //redireccionar
-            props.history.push('/productos');
-            
-        }catch( e ) {
-            console.log(e);
-            Swal.fire({
+            props.history.push( '/productos' );
+
+        } catch( e ) {
+            console.log( e );
+            Swal.fire( {
                 icon: 'error',
                 title: 'Hubo un error',
                 text: 'Vuelva a intentarlo'
-            })
+            } )
         }
+    }
+
+    if(!auth.auth){
+        props.history.push('/iniciar-sesion')
     }
 
 
@@ -111,4 +118,4 @@ const NuevoProducto = (props) => {
     );
 };
 
-export default withRouter(NuevoProducto);
+export default withRouter( NuevoProducto );

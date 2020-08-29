@@ -1,30 +1,52 @@
-import React, {useState,useEffect} from 'react';
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useContext } from 'react';
+import { Link, withRouter } from "react-router-dom";
 
 import clienteAxios from "../../config/axios";
 import Cliente from "./Cliente";
 import Spinner from "../layout/Spinner";
 
 
-const Clientes = () => {
+import { CRMContext } from "../../context/CRMContext";
 
-    const[clientes,guardarClientes] = useState([]);
+const Clientes = ( props ) => {
 
-    const consultarAPI = async () => {
-        const clientesConsulta = await clienteAxios.get('/clientes');
-
-        //Colocar el resultado en el state
-        guardarClientes(clientesConsulta.data)
-    }
+    const [clientes, guardarClientes] = useState( [] );
+    //utilizar Valores de context
+    const [auth, guardarAuth] = useContext( CRMContext );
 
     //useEffect similar a componentDidMount y willmount
-    useEffect(()=>{
-        consultarAPI();
-    },[clientes]);
+    useEffect( () => {
 
+        if( auth.token !== '' ) {
+            const consultarAPI = async() => {
+                try {
+                    const clientesConsulta = await clienteAxios.get( '/clientes', {
+                        headers: {
+                            Authorization: `Bearer ${auth.token}`
+                        }
+                    } );
+                    //Colocar el resultado en el state
+                    guardarClientes( clientesConsulta.data )
 
+                } catch( e ) {
+                    //Error con authorization
+                    if( e.response.status === 500 ) {
+                        props.history.push( '/iniciar-sesion' );
+                    }
+                }
+            }
+            consultarAPI();
+        } else {
+            props.history.push( '/iniciar-sesion' )
+        }
+
+    }, [clientes] );
+
+    if(!auth.auth){
+        props.history.push('/iniciar-sesion')
+    }
     //spinner de carga
-    if(!clientes.length) return <Spinner/>
+    if( !clientes.length ) return <Spinner/>
 
     return (
         <>
@@ -33,15 +55,15 @@ const Clientes = () => {
                 Nuevo Cliente
             </Link>
             <ul className="listado-clientes">
-                {clientes.map( (cliente, i) => (
-                        <Cliente
-                            key={i}
-                            cliente={cliente}
-                        />
-                ))}
+                {clientes.map( ( cliente, i ) => (
+                    <Cliente
+                        key={i}
+                        cliente={cliente}
+                    />
+                ) )}
             </ul>
         </>
     );
 };
 
-export default Clientes;
+export default withRouter( Clientes );
