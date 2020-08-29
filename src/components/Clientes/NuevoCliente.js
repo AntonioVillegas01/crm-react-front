@@ -43,7 +43,11 @@ const NuevoCliente = ({history}) => {
         e.preventDefault();
 
         //enviar Peticion
-        clienteAxios.post( '/clientes', cliente )
+        clienteAxios.post( '/clientes', cliente, {
+            headers: {
+                Authorization: `Bearer ${auth.token}`
+            }
+        } )
             .then( res => {
                 if( res.data.code === 11000 ) {
                     Swal.fire( {

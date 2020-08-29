@@ -1,11 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import {withRouter} from 'react-router-dom';
 import clienteAxios from "../../config/axios";
 import FormBuscarProducto from "./FormBuscarProducto";
 import Swal from "sweetalert2";
 import FormCantidadProducto from "./FormCantidadProducto";
+import { CRMContext } from "../../context/CRMContext";
+
 
 const NuevoPedido = ( props ) => {
+
+    const[auth,guardarAuth] = useContext(CRMContext);
 
     //Extraer id de cliente
     const { id } = props.match.params;
@@ -18,23 +22,47 @@ const NuevoPedido = ( props ) => {
 
     useEffect( () => {
 
-        //obtener Cliente
-        const consultarAPI = async() => {
-            //consultar cliente actual
-            const resultado = await clienteAxios.get( `/clientes/${id}` )
-            guardarCliente( resultado.data );
-        }
-        consultarAPI();
+        if(auth.token !== ''){
 
-        //Acutalizar total con la dependencia productos
-        actualizarTotal();
+            try{
+                //obtener Cliente
+                const consultarAPI = async() => {
+                    //consultar cliente actual
+                    const resultado = await clienteAxios.get( `/clientes/${id}`, {
+                        headers:{
+                            Authorization: `Bearer: ${auth.token}`
+                        }
+                    } )
+                    guardarCliente( resultado.data );
+                }
+                consultarAPI();
+                //Acutalizar total con la dependencia productos
+                actualizarTotal();
+
+
+            }catch( e ) {
+                if(e.response.status === 500){
+                    props.history.push( '/iniciar-sesion' )
+                }
+            }
+
+        }else{
+            props.history.push( '/iniciar-sesion' )
+        }
+
+
     }, [productos] )
 
 
     const buscarProducto = async( e ) => {
         e.preventDefault();
         //obtener productos de la busqueda
-        const resultadoBusqueda = await clienteAxios.post( `/productos/busqueda/${busqueda}` )
+        const resultadoBusqueda = await clienteAxios.post( `/productos/busqueda/${busqueda}`, null, {
+                headers: {
+                    Authorization: `Bearer: ${auth.token}`
+                }
+            }
+         )
 
         //Si no hay resultados una alerta, contrario agregarlo al state
         if( resultadoBusqueda.data[0] ) {
@@ -134,7 +162,11 @@ const NuevoPedido = ( props ) => {
         }
 
         //ALMACENARLO EN DB
-        const resultado = await clienteAxios.post(`/pedidos/nuevo/${id}`, pedido);
+        const resultado = await clienteAxios.post(`/pedidos/nuevo/${id}`, pedido, {
+            headers: {
+                Authorization: `Bearer: ${auth.token}`
+            }
+        });
 
         //leer resultado
         if(resultado.status === 200){

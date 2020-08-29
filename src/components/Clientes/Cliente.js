@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import clienteAxios from "../../config/axios";
+import { CRMContext } from "../../context/CRMContext";
 
 
 const Cliente = ( { cliente } ) => {
+
+    const [auth,guardarAuth]= useContext(CRMContext);
 
     const { _id, nombre, apellido, empresa, email, telefono } = cliente;
 
@@ -22,7 +25,11 @@ const Cliente = ( { cliente } ) => {
         } ).then( ( result ) => {
             if( result.value ) {
                 //Llamado a axios
-                clienteAxios.delete( `/clientes/${idCliente}` )
+                clienteAxios.delete( `/clientes/${idCliente}`, {
+                    headers:{
+                        Authorization: `Bearer ${auth.token}`
+                    }
+                } )
                     .then( (res) => {
                         Swal.fire(
                             'Eliminado!',

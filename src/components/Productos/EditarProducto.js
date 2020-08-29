@@ -12,6 +12,7 @@ const EditarProducto = (props) => {
 
     const[auth, guardarAuth] = useContext(CRMContext);
 
+
     //Producto = state, y funcion para actualizar
     const[producto, guardarProducto] = useState({
         nombre: '',
@@ -107,7 +108,7 @@ const EditarProducto = (props) => {
     const {nombre, precio, imagen} = producto;
 
     if(!auth.auth){
-        props.history.push('iniciar-sesion')
+        props.history.push('/iniciar-sesion')
     }
 
     if(!nombre) return <Spinner/>;
